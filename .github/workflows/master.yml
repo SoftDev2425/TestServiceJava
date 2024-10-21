@@ -1,0 +1,71 @@
+name: Master and Releaser
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1 - Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2 - Setting up Java environment
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # Step 3 - Build the application
+      - name: Build the application
+        run: mvn clean package
+
+      # Step 4 - Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Step 5 - Log in to GitHub Container Registry
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }} # Use the GitHub actor (the user triggering the action)
+          password: ${{ secrets.GITHUB_TOKEN }} # Use the provided GitHub token
+
+      # Step 6 - Build and Push Container (Versioned with sha)
+      - name: Build and Push Container (Versioned with sha)
+        run: |
+          IMAGE_NAME="ghcr.io/$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]'):${{ github.sha }}"
+          echo "Building versioned image: $IMAGE_NAME"
+          docker build -t $IMAGE_NAME .
+          docker push $IMAGE_NAME
+
+      # Step 7 - Build and Push Container (Latest)
+      - name: Build and Push Container (Latest)
+        run: |
+          IMAGE_NAME="ghcr.io/$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]'):latest"
+          echo "Building latest image: $IMAGE_NAME"
+          docker build -t $IMAGE_NAME .
+          docker push $IMAGE_NAME
+
+      # Step 8 - Create a new version and release with Maven Version Plugin
+      - name: Create a new version and release
+        id: release
+        run: |
+          mvn build-helper:parse-version versions:set -DnewVersion=${{ github.sha }}-SNAPSHOT
+          mvn clean deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Token to create a release
+
+      # Step 9 - Create and push version tag if a new version was released
+      - name: Create and push version tag
+        if: steps.release.outputs.version != ''
+        run: |
+          TAG_NAME=v${{ steps.release.outputs.version }}
+          echo "Creating version tag: $TAG_NAME"
+          git tag $TAG_NAME
+          git push origin $TAG_NAME
