@@ -4,12 +4,20 @@
         "https://checkstyle.org/dtds/configuration_1_3.dtd">
 
 <module name="Checker">
-    <!-- Basic style checks -->
     <module name="TreeWalker">
-        <!-- Enforce naming conventions for classes, methods, and variables -->
-        <module name="NamingConvention">
+        <!-- Enforce naming conventions for class names -->
+        <module name="TypeName">
+            <property name="format" value="^[A-Z][a-zA-Z0-9]*$"/>
+        </module>
+
+        <!-- Enforce naming conventions for method names -->
+        <module name="MethodName">
             <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
-            <property name="applyToPrivate" value="true"/>
+        </module>
+
+        <!-- Enforce naming conventions for variable names -->
+        <module name="LocalVariableName">
+            <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
         </module>
 
         <!-- Check for proper indentation (4 spaces) -->
