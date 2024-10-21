@@ -58,34 +58,39 @@ jobs:
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
 
+      - name: Get current version
+        id: get_version
+        run: |
+          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "Current version: $CURRENT_VERSION"
+          if [[ -z "$CURRENT_VERSION" ]]; then
+            echo "ERROR: Current version is empty."
+            exit 1
+          fi
+          echo "CURRENT_VERSION=$CURRENT_VERSION" >> $GITHUB_ENV
+
       - name: Increment version
         id: increment_version
         run: |
-            # Extract the current version components
-            IFS='.' read -r major minor patch <<< "${{ env.CURRENT_VERSION }}"
-            new_patch=$((patch + 1))
-            NEW_VERSION="${major}.${minor}.${new_patch}"
-            echo "New version: $NEW_VERSION"
-            echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          # Extract the current version components
+          IFS='.' read -r major minor patch <<< "${{ env.CURRENT_VERSION }}"
+          if [[ -z "$major" || -z "$minor" || -z "$patch" ]]; then
+            echo "ERROR: Failed to parse version components."
+            exit 1
+          fi
+          new_patch=$((patch + 1))
+          NEW_VERSION="${major}.${minor}.${new_patch}"
+          echo "New version: $NEW_VERSION"
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
-            - name: Set new version
-              run: |
-                mvn versions:set -DnewVersion=${{ env.NEW_VERSION }}
-                mvn versions:commit
+      - name: Set new version
+        run: |
+          mvn versions:set -DnewVersion=${{ env.NEW_VERSION }}
+          mvn versions:commit
 
-            - name: Create and push version tag
-              run: |
-                TAG_NAME=v${{ env.NEW_VERSION }}
-                echo "Creating version tag: $TAG_NAME"
-                git tag $TAG_NAME
-                git push origin $TAG_NAME
-
-            - name: Prepare Release
-              run: mvn release:prepare
-              env:
-                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-            - name: Perform Release
-              run: mvn release:perform
-              env:
-                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create and push version tag
+        run: |
+          TAG_NAME=v${{ env.NEW_VERSION }}
+          echo "Creating version tag: $TAG_NAME"
+          git tag $TAG_NAME
+          git push origin $TAG_NAME
