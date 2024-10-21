@@ -8,7 +8,7 @@ public class DockerController {
 
     @GetMapping("/")
     public String index() {
-        return "Hello from test service java";
+        return "Hello from test service Java";
     }
 
     @GetMapping("/docker")
