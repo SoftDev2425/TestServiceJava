@@ -58,15 +58,14 @@ jobs:
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
 
-      - name: Set the new version
+      - name: Set Version
         run: |
-            mvn versions:set -DnewVersion=1.0.0
-            mvn versions:commit
+          mvn versions:set -DnewVersion=1.0.0
+          mvn versions:commit
 
-      - name: Prepare Release
-        run: mvn release:prepare
-        env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Token for pushing tags/releases
-
-      - name: Perform Release
-        run: mvn release:perform
+      - name: Create and push version tag
+        run: |
+          TAG_NAME=v1.0.0
+          echo "Creating version tag: $TAG_NAME"
+          git tag $TAG_NAME
+          git push origin $TAG_NAME
