@@ -5,22 +5,19 @@
 
 <module name="Checker">
 
-    <!-- Simple configuration: only essential checks -->
+    <!-- Ensure there are no unused imports -->
     <module name="TreeWalker">
-
-        <!-- Ensure there are no unused imports -->
         <module name="UnusedImports"/>
 
         <!-- Enforce method names are in lowerCamelCase -->
         <module name="MethodName"/>
 
-        <!-- Ensure each file ends with a newline -->
-        <module name="NewlineAtEndOfFile"/>
-
         <!-- Basic design rule for methods and classes -->
         <module name="DesignForExtension"/>
-
     </module>
+
+    <!-- Ensure each file ends with a newline -->
+    <module name="NewlineAtEndOfFile"/>
 
     <!-- Ensure imports are ordered alphabetically -->
     <module name="ImportOrder">
