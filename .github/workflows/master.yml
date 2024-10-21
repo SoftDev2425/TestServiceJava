@@ -58,20 +58,14 @@ jobs:
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
 
-      # Step 8 - Create a new version and release with Maven Version Plugin
-      - name: Create a new version and release
-        id: release
+      - name: Set Version
         run: |
-          mvn build-helper:parse-version versions:set -DnewVersion=${{ github.sha }}-SNAPSHOT
-          mvn clean deploy
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Token to create a release
+          mvn versions:set -DnewVersion=1.0.0
+          mvn versions:commit
 
-      # Step 9 - Create and push version tag if a new version was released
       - name: Create and push version tag
-        if: steps.release.outputs.version != ''
         run: |
-          TAG_NAME=v${{ steps.release.outputs.version }}
+          TAG_NAME=v1.0.0
           echo "Creating version tag: $TAG_NAME"
           git tag $TAG_NAME
           git push origin $TAG_NAME
