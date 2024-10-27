@@ -8,6 +8,15 @@ on:
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_DB: testservice
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: mypassword
+        ports:
+          - 5432:5432
     steps:
       # Step 1 - Checkout code
       - uses: actions/checkout@v3
@@ -29,6 +38,10 @@ jobs:
 
       # Step 5 - Running tests
       - name: Run Tests
+        env:
+          SPRING_DATASOURCE_URL: "jdbc:postgresql://localhost:5432/testservice"
+          SPRING_DATASOURCE_USERNAME: "user"
+          SPRING_DATASOURCE_PASSWORD: "mypassword"
         run: mvn test
 
       # Step 6 - Running build (only if everything else succeeds)
