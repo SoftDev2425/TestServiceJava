@@ -14,4 +14,13 @@ public class UserDTO {
     private String email;
     private String name;
     private String password;
+
+    @Override
+    public String toString() {
+        return "UserDTO: \n" +
+                "id: " + id + "\n" +
+                "email: " + email + "\n" +
+                "name: " + name + "\n" +
+                "password: " + password;
+    }
 }
